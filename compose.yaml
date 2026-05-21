@@ -1,0 +1,15 @@
+services:
+  rust-job-image:
+    build:
+      context: .
+      args:
+        RUST_VERSION: ${RUST_VERSION:-1.89-bookworm}
+    image: ${IMAGE_NAME:-ghcr.io/vishvish/forgejo-rust-job:local}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+          echo "image is ready"
+          stat -c '%F %n' /var/run /var/run/act
+          rustc --version
+          cargo --version

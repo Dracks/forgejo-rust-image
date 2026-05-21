@@ -6,7 +6,10 @@ LABEL org.opencontainers.image.description="Rust job image for Forgejo runners w
 
 USER root
 
-RUN rm -f /var/run \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git nodejs \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /var/run \
     && mkdir -p /var/run/act \
     && chmod 755 /var/run /var/run/act
 

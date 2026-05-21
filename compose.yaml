@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        RUST_VERSION: ${RUST_VERSION:-1.89-bookworm}
+        RUST_VERSION: ${RUST_VERSION:-1.95.0-trixie}
     image: ${IMAGE_NAME:-ghcr.io/vishvish/forgejo-rust-job:local}
     command:
       - /bin/sh
@@ -13,3 +13,5 @@ services:
           stat -c '%F %n' /var/run /var/run/act
           rustc --version
           cargo --version
+          node --version
+          git --version

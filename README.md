@@ -10,7 +10,7 @@ Custom Rust job image for Forgejo runners.
 mkdirat var/run/act: path escapes from parent
 ```
 
-This image removes the `/var/run` symlink and creates a real writable `/var/run/act` directory.
+This image removes the `/var/run` symlink, creates a real writable `/var/run/act` directory, and installs `node` plus `git` so Forgejo/act can run JavaScript actions and checkout the repository.
 
 ## Local build
 

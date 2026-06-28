@@ -1,4 +1,4 @@
-ARG RUST_VERSION=1.95.0-trixie
+ARG RUST_VERSION=1.98.0-trixie
 FROM rust:${RUST_VERSION}
 
 LABEL org.opencontainers.image.source="https://github.com/vishvish/forgejo-rust-job-image"

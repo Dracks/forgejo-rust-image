@@ -12,9 +12,24 @@ permissions:
   contents: read
   packages: write
 
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository_owner }}/forgejo-rust-job
+
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        platform: [amd64, arm64]
+        include:
+        - platform: amd64
+          runner: ubuntu-24.04
+        - platform: arm64
+          runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Check out repo
@@ -34,7 +49,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/forgejo-rust-job
+          images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
@@ -46,6 +61,33 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  multiarch:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Show tags"
+        run: |
+          echo "Tags!"
+          echo "${{ needs.build.outputs.tags}}"
+
+      - name: Create and push manifest
+        run: |
+            docker manifest create ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }} \
+            --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-amd64 \
+            --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-arm64
+            docker manifest create ${{ env.IMAGE_NAME }}:latest \
+              --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-amd64 \
+              --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-arm64
+            docker manifest push ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}
+            docker manifest push ${{ env.IMAGE_NAME }}:latest

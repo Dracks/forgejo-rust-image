@@ -65,11 +65,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           suffix: -${{ matrix.platform}}
-      - name: Set output
-        id: vars
-        run:
-          echo "tags=${{steps.meta.output.tags}}" >> $GITHUB_OUTPUT;
-          echo "${{steps.meta.putput.tags}}"
 
   multiarch:
     needs: [ build ]
@@ -81,11 +76,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Show tags"
-        run: |
-          echo "Tags!"
-          echo "${{ needs.build.vars.tags}}"
 
       - name: Create and push manifest
         run: |

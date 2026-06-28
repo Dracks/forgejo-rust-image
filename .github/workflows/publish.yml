@@ -64,6 +64,12 @@ jobs:
           platforms: linux/${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          suffix: -${{ matrix.platform}}
+      - name: Set output
+        id: vars
+        run:
+          echo "tags=${{steps.meta.output.tags}}" >> $GITHUB_OUTPUT;
+          echo "${{steps.meta.putput.tags}}"
 
   multiarch:
     needs: [ build ]
@@ -72,22 +78,18 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v4
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Show tags"
         run: |
           echo "Tags!"
-          echo "${{ needs.build.outputs.tags}}"
+          echo "${{ needs.build.vars.tags}}"
 
       - name: Create and push manifest
         run: |
-            docker manifest create ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }} \
-            --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-amd64 \
-            --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-arm64
-            docker manifest create ${{ env.IMAGE_NAME }}:latest \
-              --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-amd64 \
-              --amend ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}-arm64
-            docker manifest push ${{ env.IMAGE_NAME }}:${{ needs.preBuild.outputs.tag }}
-            docker manifest push ${{ env.IMAGE_NAME }}:latest
+            docker manifest create ${{env.REGISTRY}}/${{ env.IMAGE_NAME }}:latest \
+              --amend ${{ env.IMAGE_NAME }}:latest-amd64 \
+              --amend ${{ env.IMAGE_NAME }}:latest-arm64
+            docker manifest push ${{env.REGISTRY}}/${{ env.IMAGE_NAME }}:latest

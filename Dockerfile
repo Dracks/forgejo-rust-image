@@ -13,4 +13,7 @@ RUN apt-get update \
     && mkdir -p /var/run/act \
     && chmod 755 /var/run /var/run/act
 
+RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
+  && rustup component add rustfmt && rustup component add clippy
+
 WORKDIR /workspace
